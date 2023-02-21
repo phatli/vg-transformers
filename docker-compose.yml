@@ -17,5 +17,15 @@ services:
       - type: bind
         source: ./
         target: /home/user/vgt
+      - type: volume 
+        source: datasets
+        target: /home/user/datasets
+        volume:
+          nocopy: true
     dns:
       - 8.8.8.8
+
+volumes:
+  datasets:
+    external: true
+    name: datasets
