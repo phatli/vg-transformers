@@ -1,0 +1,9 @@
+FROM phatli/pytorch:190cu111_dev 
+
+COPY ./pip_requirements.txt /tmp/requirements.txt
+RUN sudo apt update; exit 0
+RUN sudo apt install -y libglib2.0-0 libsm6 libxrender1 libxext6 && sudo rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+ENTRYPOINT [ "/bin/zsh" ]
+CMD ["-l"]
