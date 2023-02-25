@@ -1,8 +1,14 @@
 FROM phatli/pytorch:190cu111_dev 
 
+RUN curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.3-Linux-x86_64.sh \
+    && sudo chmod +x ~/miniconda.sh \
+    && ~/miniconda.sh -b -p ~/miniconda\
+    && rm ~/miniconda.sh \
+    && export PATH="/home/user/miniconda/bin:$PATH"
 COPY ./pip_requirements.txt /tmp/requirements.txt
 RUN sudo apt update; exit 0
 RUN sudo apt install -y libglib2.0-0 libsm6 libxrender1 libxext6 && sudo rm -rf /var/lib/apt/lists/*
+RUN conda install -y -c conda-forge faiss
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 ENTRYPOINT [ "/bin/zsh" ]

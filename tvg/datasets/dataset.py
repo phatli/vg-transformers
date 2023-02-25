@@ -74,6 +74,16 @@ class BaseDataset(data.Dataset):
             else:
                 os.makedirs('cache', exist_ok=True)
                 logging.info('Data structures were not cached, building them now...')
+        elif split == 'train':
+            cache_file = f'cache/{self.dataset_folder.split("/")[-2]}_seq{self.seq_len}.torch'
+            if os.path.isfile(cache_file):
+                logging.info(f'Loading cached data from {cache_file}...')
+                cache_dict = torch.load(cache_file)
+                self.__dict__.update(cache_dict)
+                return
+            else:
+                os.makedirs('cache', exist_ok=True)
+                logging.info('Data structures were not cached, building them now...')
 
         #### Read paths and UTM coordinates for all images.
         database_folder = join(self.dataset_folder, "database")
@@ -363,7 +373,8 @@ class PCADataset(data.Dataset):
             raise FileNotFoundError(f"Folder {dataset_folder} does not exist.")
         self.base_transform = base_transform
 
-        if 'robotcar' in dataset_folder:
+        if 'robotcar_ori' in dataset_folder:
+            self.dataset_folder = os.path.join(dataset_folder, split)
             folders = list(product(['train', 'val'], ['queries', 'database'])) + [('test', 'database')]
             self.db_paths = []
             for folder in folders:
@@ -374,7 +385,7 @@ class PCADataset(data.Dataset):
                 self.db_paths += paths
         else:
             self.dataset_folder = join(dataset_folder, split)
-            database_folder = join(self.dataset_folder, "database")
+            database_folder = join(self.dataset_folder, "queries")
             self.db_paths, _, _ = build_sequences(database_folder, seq_len=self.seq_len,
                                                   cities=cities, desc="Loading database to compute PCA...")
 
@@ -382,7 +393,7 @@ class PCADataset(data.Dataset):
 
     def __getitem__(self, index):
         # Note MSLSBase uses an old_index variable that is also returned
-        img = torch.stack([self.base_transform(Image.open(path)) for path in self.db_paths[index].split(',')])
+        img = torch.stack([self.base_transform(Image.open(os.path.join(self.dataset_folder,path))) for path in self.db_paths[index].split(',')])
         return img
 
     def __len__(self):

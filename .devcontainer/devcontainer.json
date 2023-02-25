@@ -3,7 +3,7 @@
 {
   "dockerComposeFile": "../docker-compose.yml",
   "service": "VRGNET",
-  "workspaceFolder": "/home/user/vrgnet",
+  "workspaceFolder": "/home/user/vgt",
   "shutdownAction": "stopCompose",
   "settings": {
     "terminal.integrated.profiles.linux": {

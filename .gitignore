@@ -157,3 +157,6 @@ dmypy.json
 # Mac and PyCharm files
 .DS_Store
 .idea
+
+*.torch
+*.npy

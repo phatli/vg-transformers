@@ -15,28 +15,33 @@ from tvg.datasets import BaseDataset, PCADataset
 from tvg.evals import test
 from tvg.models import TVGNet
 from tvg.utils import parse_arguments, configure_transform, setup_logging
+from os.path import exists
 
 
 def compute_pca(args, model, transform, full_features_dim):
-    model = model.eval()
-    pca_ds = PCADataset(dataset_folder=args.dataset_path, split='train',
-                        base_transform=transform, seq_len=args.seq_length)
-    logging.info(f'PCA dataset: {pca_ds}')
-    num_images = min(len(pca_ds), 2 ** 14)
-    if num_images < len(pca_ds):
-        idxs = random.sample(range(0, len(pca_ds)), k=num_images)
-    else:
-        idxs = list(range(len(pca_ds)))
-    subset_ds = Subset(pca_ds, idxs)
-    dl = torch.utils.data.DataLoader(subset_ds, args.infer_batch_size)
+    pca_features_cache_path = "cache/pca_features.npy"
+    if not exists(pca_features_cache_path):
+        model = model.eval()
+        pca_ds = PCADataset(dataset_folder=args.dataset_path, split='train',
+                            base_transform=transform, seq_len=args.seq_length)
+        logging.info(f'PCA dataset: {pca_ds}')
+        num_images = min(len(pca_ds), 2 ** 14)
+        if num_images < len(pca_ds):
+            idxs = random.sample(range(0, len(pca_ds)), k=num_images)
+        else:
+            idxs = list(range(len(pca_ds)))
+        subset_ds = Subset(pca_ds, idxs)
+        dl = torch.utils.data.DataLoader(subset_ds, args.infer_batch_size)
 
-    pca_features = np.empty([num_images, full_features_dim])
-    with torch.no_grad():
-        for i, sequences in enumerate(tqdm(dl, ncols=100, desc="Database sequence descriptors for PCA: ")):
-            if len(sequences.shape) == 5:
-                sequences = einops.rearrange(sequences, "b s c h w -> (b s) c h w")
-            features = model(sequences).cpu().numpy()
-            pca_features[i * args.infer_batch_size : (i * args.infer_batch_size ) + len(features)] = features
+        pca_features = np.empty([num_images, full_features_dim])
+        with torch.no_grad():
+            for i, sequences in enumerate(tqdm(dl, ncols=100, desc="Database sequence descriptors for PCA: ")):
+                if len(sequences.shape) == 5:
+                    sequences = einops.rearrange(sequences, "b s c h w -> (b s) c h w")
+                features = model(sequences).cpu().numpy()
+                pca_features[i * args.infer_batch_size : (i * args.infer_batch_size ) + len(features)] = features
+    else:
+        pca_features = np.load(pca_features_cache_path)
     pca = PCA(args.pca_outdim)
     logging.info(f'Fitting PCA from {full_features_dim} to {args.pca_outdim}...')
     pca.fit(pca_features)
