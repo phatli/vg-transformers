@@ -12,7 +12,7 @@
       "args":[
         "--pca_outdim=4096",
         "--resume=logs/default/43/best_model.pth",
-        "--dataset_path=/home/heshan/datasets/robotcar_vgt/robotcar_cut_2m_formatted",
+        "--dataset_path=/home/user/datasets/robotcar_vgt/robotcar_cut_2m_formatted",
         "--img_shape","384","384",
         "--arch=vgg16",
         "--aggregation=seqvlad",
@@ -23,6 +23,29 @@
         "--seq_length=14",
         "--optim=adam",
         "--lr=0.0001"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+
+    {
+      "name": "Test",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/main_scripts/evaluation.py",
+      "args":[
+        "--pca_outdim=4096",
+        "--resume=logs/default/43/best_model.pth",
+        "--dataset_path=/home/user/datasets/robotcar_vgt/robotcar_cut_2m_formatted",
+        "--img_shape","384","384",
+        "--arch=vgg16",
+        "--aggregation=seqvlad",
+        "--trunc_te=8",
+        "--freeze_te=1",
+        "--train_batch_size=1",
+        "--nNeg=5",
+        "--seq_length=14",
+        "--val_posDistThr=6"
       ],
       "console": "integratedTerminal",
       "justMyCode": false

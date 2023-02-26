@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import logging
 from datetime import datetime
+import pickle
 import einops
 import numpy as np
 from sklearn.decomposition import PCA
@@ -77,9 +78,14 @@ def evaluation():
     logging.info(f"Test set: {eval_ds}")
 
     if args.pca_outdim:
+        pca_path = "cache/pca.pkl"
         full_features_dim = args.features_dim
         args.features_dim = args.pca_outdim
-        pca = compute_pca(args, model, transform, full_features_dim)
+        if not exists(pca_path):
+            pca = compute_pca(args, model, transform, full_features_dim)
+        else:
+            with open(pca_path, 'rb') as f:
+                pca = pickle.load(f)
         model.module.meta['outputdim'] = args.pca_outdim
     else:
         pca = None
